@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static '.css/style.css' %}">
+<script src="{% static 'js/script.js' %}" defer></script>
+<title>Profile – quizlab</title>
+</head>
+<body>
+  <header class="site">
+    <div class="container bar">
+<a class="logo" href="{% url 'index' %}">quiz<b>lab</b></a>
+
+<nav class="nav" id="nav" aria-label="Main">
+    <a href="{% url 'index' %}">Quizzes</a>
+    <a href="{% url 'index' %}#solved">Leaderboard</a>
+    <a href="{% url 'leaderboard' %}">Profile</a>
+</nav>
+      <span class="spacer"></span>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch theme">◐</button>
+      <details class="menu">
+        <summary aria-label="Account menu"><span class="avatar">
+    {{ request.user.username|slice:":2"|upper }}
+</span></summary>
+        <div class="dropdown">
+          <a href="profile.html">Profile</a>
+          <hr>
+          <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Log out</button>
+</form>
+        </div>
+      </details>
+      <button class="icon-btn burger" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+    </div>
+  </header>
+  <main class="container profile">
+    <aside>
+      <section class="panel who">
+<span class="avatar lg">
+    {% if profile.profile_image %}
+        <img
+            src="{{ profile.profile_image.url }}"
+            alt="Profile photo"
+            style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
+        >
+    {% else %}
+        {{ request.user.username|slice:":2"|upper }}
+    {% endif %}
+</span>
+
+<h1 style="font-size:1.4rem">
+    {{ request.user.get_full_name|default:request.user.username }}
+</h1>
+
+<p class="muted">
+    @{{ request.user.username }} · joined
+    {{ request.user.date_joined|date:"M Y" }}
+</p>
+        <div class="stats">
+          <div><b>12</b><span>Solved</span></div>
+          <div><b>78%</b><span>Average</span></div>
+          <div><b>#4</b><span>Rank</span></div>
+        </div>
+      </section>
+    </aside>
+
+    <div>
+<form
+    class="panel"
+    method="post"
+    action="{% url 'profile_update' %}"
+    enctype="multipart/form-data"
+>
+    {% csrf_token %}
+
+    <h2>Personal details</h2>
+
+    <div class="two">
+        <div class="field">
+            <label for="first">First name</label>
+            <input id="first" name="first_name"
+                   value="{{ request.user.first_name }}" required>
+        </div>
+
+        <div class="field">
+            <label for="last">Last name</label>
+            <input id="last" name="last_name"
+                   value="{{ request.user.last_name }}" required>
+        </div>
+    </div>
+
+    <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" name="email"
+               value="{{ request.user.email }}" required>
+    </div>
+
+    <div class="field">
+        <label for="bio">About you</label>
+        <textarea id="bio" name="bio" rows="3">{{ profile.about }}</textarea>
+    </div>
+
+    <div class="field">
+        <label for="photo">Profile photo</label>
+        <input id="photo" type="file" name="photo" accept="image/*">
+    </div>
+
+    <button class="btn" type="submit">Save changes</button>
+</form>
+
+
+<form class="panel" method="post"
+      action="{% url 'password_change' %}">
+
+    {% csrf_token %}
+
+    <h2>Change password</h2>
+
+    {{ password_form.as_p }}
+
+    <button class="btn ghost" type="submit">
+        Update password
+    </button>
+</form>
+
+      
+<section class="panel">
+    <h2>Recent results</h2>
+
+    <div class="rows">
+        {% for result in recent_results %}
+            <div class="row">
+                <span class="grow">
+                    <strong>{{ result.quiz.title }}</strong>
+                    <span class="muted">
+                        {{ result.created_at|date:"d M Y" }}
+                    </span>
+                </span>
+
+                <span class="score ok">
+                    {{ result.correct_answers }}
+                </span>
+            </div>
+        {% empty %}
+            <p class="muted">No quiz results yet.</p>
+        {% endfor %}
+    </div>
+</section>
+    </div>
+  </main>
+</body>
+</html>

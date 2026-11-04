@@ -1,0 +1,322 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ person.username }} – QuizLab{% endblock %}
+
+{% block content %}
+
+<style>
+    .public-profile {
+        max-width: 1120px;
+        margin: 30px auto;
+        color: #f5f5f7;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 14px;
+        color: #a4a9bb;
+        text-decoration: none;
+    }
+
+    .profile-layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .profile-card,
+    .details-card,
+    .results-card {
+        background: #1b1e28;
+        border: 1px solid #2b2f3e;
+        border-radius: 17px;
+        padding: 24px;
+    }
+
+    .profile-card {
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 86px;
+        height: 86px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #f3b34f;
+        color: #171923;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-card h1 {
+        font-size: 23px;
+        margin: 0 0 5px;
+    }
+
+    .profile-subtitle {
+        color: #a4a9bb;
+        font-size: 14px;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        margin-top: 22px;
+    }
+
+    .stat {
+        background: #252938;
+        border-radius: 11px;
+        padding: 13px 5px;
+    }
+
+    .stat strong {
+        display: block;
+        font-size: 17px;
+    }
+
+    .stat span {
+        color: #a4a9bb;
+        font-size: 12px;
+    }
+
+    .details-card h2,
+    .results-card h2 {
+        font-size: 19px;
+        margin: 0 0 20px;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px 16px;
+    }
+
+    .detail.full {
+        grid-column: 1 / -1;
+    }
+
+    .detail label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 9px;
+    }
+
+    .detail-value {
+        background: #141720;
+        border: 1px solid #2b2f3e;
+        border-radius: 11px;
+        padding: 14px;
+        min-height: 20px;
+        overflow-wrap: anywhere;
+    }
+
+    .detail.about .detail-value {
+        min-height: 60px;
+        white-space: pre-wrap;
+    }
+
+    .results-card {
+        margin-top: 24px;
+    }
+
+    .result-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 17px 15px;
+        border: 1px solid #2b2f3e;
+        border-bottom: 0;
+    }
+
+    .result-row:first-of-type {
+        border-radius: 12px 12px 0 0;
+    }
+
+    .result-row:last-of-type {
+        border-bottom: 1px solid #2b2f3e;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .result-name {
+        font-weight: 700;
+    }
+
+    .result-date {
+        display: block;
+        color: #a4a9bb;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+
+    .result-score {
+        color: #43d68b;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .empty-results {
+        color: #a4a9bb;
+        padding: 20px;
+        text-align: center;
+    }
+
+    @media (max-width: 750px) {
+        .public-profile {
+            margin: 20px 12px;
+        }
+
+        .profile-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .detail.full {
+            grid-column: auto;
+        }
+    }
+</style>
+
+<div class="public-profile">
+
+    <a href="{% url 'leaderboard' %}" class="back-link">
+        ← Leaderboard
+    </a>
+
+    <div class="profile-layout">
+
+        <aside class="profile-card">
+
+            <div class="profile-avatar">
+                {% if profile and profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}"
+                         alt="{{ person.username }}">
+                {% else %}
+                    {{ person.username|slice:":2"|upper }}
+                {% endif %}
+            </div>
+
+            <h1>
+                {% if person.first_name %}
+                    {{ person.first_name }} {{ person.last_name }}
+                {% else %}
+                    {{ person.username }}
+                {% endif %}
+            </h1>
+
+            <div class="profile-subtitle">
+                @{{ person.username }} · joined
+                {{ person.date_joined|date:"M Y" }}
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <strong>{{ solved_count }}</strong>
+                    <span>Solved</span>
+                </div>
+
+                <div class="stat">
+                    <strong>{{ total_score }}</strong>
+                    <span>Points</span>
+                </div>
+
+                <div class="stat">
+                    <strong>#{{ rank }}</strong>
+                    <span>Rank</span>
+                </div>
+            </div>
+
+        </aside>
+
+        <section class="details-card">
+
+            <h2>Personal details</h2>
+
+            <div class="details-grid">
+
+                <div class="detail">
+                    <label>First name</label>
+                    <div class="detail-value">
+                        {{ person.first_name|default:"Not provided" }}
+                    </div>
+                </div>
+
+                <div class="detail">
+                    <label>Last name</label>
+                    <div class="detail-value">
+                        {{ person.last_name|default:"Not provided" }}
+                    </div>
+                </div>
+
+                <div class="detail full">
+                    <label>Email</label>
+                    <div class="detail-value">
+                        {{ person.email|default:"Not provided" }}
+                    </div>
+                </div>
+
+                <div class="detail full about">
+                    <label>About you</label>
+                    <div class="detail-value">
+                        {% if profile and profile.about %}
+                            {{ profile.about }}
+                        {% else %}
+                            No information provided.
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <section class="results-card">
+
+        <h2>Recent results</h2>
+
+        {% for result in results %}
+            <div class="result-row">
+                <div>
+                    <div class="result-name">
+                        {{ result.quiz }}
+                    </div>
+                    <span class="result-date">
+                        {{ result.created_at|date:"d M" }}
+                    </span>
+                </div>
+
+                <span class="result-score">
+                    {{ result.correct_answers }}
+                </span>
+            </div>
+        {% empty %}
+            <div class="empty-results">
+                No quiz results yet.
+            </div>
+        {% endfor %}
+
+    </section>
+
+</div>
+
+{% endblock %}

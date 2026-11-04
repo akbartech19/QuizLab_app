@@ -1,0 +1,177 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Quizzes – QuizLab{% endblock %}
+
+{% block content %}
+
+<div class="top">
+    <h1>Pick a quiz, beat the clock.</h1>
+    <p class="muted">3 quizzes open this week. You have solved 12 so far.</p>
+</div>
+
+<form class="filter" method="get" action="{% url 'index' %}">
+    <input
+        type="search"
+        name="title"
+        placeholder="Search by title"
+        aria-label="Search quizzes"
+        value="{{ request.GET.title }}"
+    >
+
+<select name="science" aria-label="Science">
+    <option value="">All fields</option>
+
+    {% for science in sciences %}
+        <option value="{{ science.name }}"
+            {% if request.GET.science == science.name %}selected{% endif %}>
+            {{ science.name }}
+        </option>
+    {% endfor %}
+</select>
+
+    <button class="btn" type="submit">Filter</button>
+
+    <a class="btn ghost" href="{% url 'index' %}">Reset</a>
+</form>
+<div class="layout">
+    <div>
+        
+<section id="upcoming">
+    <h2>Upcoming quizzes</h2>
+
+<div class="grid">
+    {% for quiz in upcoming_quizzes %}
+        <article class="quiz">
+            <span class="tag">{{ quiz.science.name }}</span>
+            <h3>{{ quiz.title }}</h3>
+
+            <div class="meta">
+                <span>{{ quiz.questions.count }} questions</span>
+                <span>{{ quiz.duration_minutes }} min</span>
+            </div>
+
+            {% if not quiz.status %}
+                <p class="muted">Unavailable</p>
+
+            {% elif now < quiz.start_time %}
+                <button type="button" class="btn ghost block" disabled>
+                    Remind me
+                </button>
+
+            {% elif now < quiz.end_time %}
+                <form method="post" action="{% url 'start_quiz' quiz.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn block">
+                        Start quiz
+                    </button>
+                </form>
+
+            {% else %}
+                <p class="muted">Quiz ended</p>
+            {% endif %}
+        </article>
+    {% empty %}
+        <p class="muted">No quizzes yet.</p>
+    {% endfor %}
+</div>
+
+</section>
+
+        <section id="solved">
+            <h2>Solved quizzes</h2>
+
+            <div class="rows">
+                <a class="row" href="quiz.html?id=11">
+                    <span class="grow">
+                        <strong>Python lists and dictionaries</strong>
+                        <span class="muted">Python · 24 Oct</span>
+                    </span>
+                    <span class="score ok">9/10</span>
+                </a>
+
+                <a class="row" href="quiz.html?id=12">
+                    <span class="grow">
+                        <strong>CSS flexbox and grid</strong>
+                        <span class="muted">Web development · 20 Oct</span>
+                    </span>
+                    <span class="score ok">8/10</span>
+                </a>
+
+                <a class="row" href="quiz.html?id=13">
+                    <span class="grow">
+                        <strong>Linear equations</strong>
+                        <span class="muted">Math · 15 Oct</span>
+                    </span>
+                    <span class="score bad">4/12</span>
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <aside class="side" id="top">
+        <h2>Top solvers</h2>
+
+        <ol class="solvers">
+            <li>
+                <span class="rank">1</span>
+                <span class="avatar">AB</span>
+                <span>Aziza B.</span>
+                <span class="pts">1 840</span>
+            </li>
+            <li>
+                <span class="rank">2</span>
+                <span class="avatar">SR</span>
+                <span>Sardor R.</span>
+                <span class="pts">1 720</span>
+            </li>
+            <li>
+                <span class="rank">3</span>
+                <span class="avatar">DN</span>
+                <span>Dilnoza N.</span>
+                <span class="pts">1 655</span>
+            </li>
+            <li>
+                <span class="rank">4</span>
+                <span class="avatar">
+    {% if request.user.is_authenticated %}
+        {% if request.user.profile.profile_image %}
+            <img
+                src="{{ request.user.profile.profile_image.url }}"
+                alt="Profile photo"
+                style="width:100%; height:100%; object-fit:cover; border-radius:50%;"
+            >
+        {% else %}
+            {{ request.user.username|slice:":2"|upper }}
+        {% endif %}
+    {% else %}
+        ?
+    {% endif %}
+</span>
+                <span>You</span>
+                <span class="pts">1 410</span>
+            </li>
+            <li>
+                <span class="rank">5</span>
+                <span class="avatar">OT</span>
+                <span>Otabek T.</span>
+                <span class="pts">1 380</span>
+            </li>
+        </ol>
+
+        <form method="get" action="{% url 'leaderboard' %}" style="margin-top:14px">
+            <select name="period" aria-label="Period">
+                <option value="week">This week</option>
+                <option value="month">This month</option>
+                <option value="all">All time</option>
+            </select>
+
+            <button class="btn ghost block" type="submit" style="margin-top:8px">
+                Show
+            </button>
+        </form>
+    </aside>
+</div>
+
+{% endblock %}

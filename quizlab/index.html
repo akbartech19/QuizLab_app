@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="script.js"></script>
+<title>Quizzes – quizlab</title>
+</head>
+<body>
+  <header class="site">
+    <div class="container bar">
+      <a class="logo" href="index.html">quiz<b>lab</b></a>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="index.html" aria-current="page">Quizzes</a>
+        <a href="index.html#solved">My results</a>
+        <a href="index.html#top">Leaderboard</a>
+      </nav>
+      <span class="spacer"></span>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch theme">◐</button>
+      <details class="menu">
+        <summary aria-label="Account menu"><span class="avatar">JK</span></summary>
+        <div class="dropdown">
+          <a href="profile.html">Profile</a>
+          <hr>
+          <form method="post" action="logout"><button type="submit"
+            >Log out</button></form>
+        </div>
+      </details>
+      <button class="icon-btn burger" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+    </div>
+  </header>
+  <main class="container">
+    <div class="top">
+      <h1>Pick a quiz, beat the clock.</h1>
+      <p class="muted">3 quizzes open this week. You have solved 12 so far.</p>
+    </div>
+
+    <form class="filter" method="get" action="index.html">
+      <input type="search" name="q" placeholder="Search by title" aria-label="Search quizzes">
+      <select name="field" aria-label="Field">
+        <option value="">All fields</option>
+        <option value="python">Python</option>
+        <option value="web">Web development</option>
+        <option value="english">English</option>
+        <option value="math">Math</option>
+      </select>
+      <button class="btn" type="submit">Filter</button>
+      <a class="btn ghost" href="index.html">Reset</a>
+    </form>
+
+    <div class="layout">
+      <div>
+        <section id="upcoming">
+          <h2>Upcoming quizzes</h2>
+          <div class="grid">
+{% for quiz in upcoming_quizzes %}
+    <article class="quiz">
+        <span class="tag">{{ quiz.science.name }}</span>
+
+        <h3>{{ quiz.title }}</h3>
+
+        <div class="meta">
+            <span>{{ quiz.questions.count }} questions</span>
+            <span>{{ quiz.duration_minutes }} min</span>
+        </div>
+
+        <p class="muted">
+            {% if quiz.start_time > now %}
+                Opens {{ quiz.start_time|date:"d M, H:i" }}
+            {% elif quiz.end_time > now %}
+                Open now · closes {{ quiz.end_time|date:"d M" }}
+            {% else %}
+                Quiz ended
+            {% endif %}
+        </p>
+
+        {% if quiz.start_time > now %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="quiz_id" value="{{ quiz.id }}">
+                <button class="btn ghost block" type="submit">
+                    Remind me
+                </button>
+            </form>
+
+        {% elif quiz.end_time > now %}
+            <form method="post" action="{% url 'start_quiz' quiz.id %}">
+                {% csrf_token %}
+                <button class="btn block" type="submit">
+                    Start quiz
+                </button>
+            </form>
+        {% endif %}
+    </article>
+{% empty %}
+    <p class="muted">No quizzes yet.</p>
+{% endfor %}
+          </div>
+        </section>
+
+        <section id="solved">
+          <h2>Solved quizzes</h2>
+          <div class="rows">
+            <a class="row" href="quiz.html?id=11">
+              <span class="grow"><strong>Python lists and dictionaries</strong><span class="muted">Python · 24 Oct</span></span>
+              <span class="score ok">9/10</span>
+            </a>
+            <a class="row" href="quiz.html?id=12">
+              <span class="grow"><strong>CSS flexbox and grid</strong><span class="muted">Web development · 20 Oct</span></span>
+              <span class="score ok">8/10</span>
+            </a>
+            <a class="row" href="quiz.html?id=13">
+              <span class="grow"><strong>Linear equations</strong><span class="muted">Math · 15 Oct</span></span>
+              <span class="score bad">4/12</span>
+            </a>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side" id="top">
+        <h2>Top solvers</h2>
+        <ol class="solvers">
+          <li><span class="rank">1</span><span class="avatar">AB</span><span>Aziza B.</span><span class="pts">1 840</span></li>
+          <li><span class="rank">2</span><span class="avatar">SR</span><span>Sardor R.</span><span class="pts">1 720</span></li>
+          <li><span class="rank">3</span><span class="avatar">DN</span><span>Dilnoza N.</span><span class="pts">1 655</span></li>
+          <li><span class="rank">4</span><span class="avatar">JK</span><span>You</span><span class="pts">1 410</span></li>
+          <li><span class="rank">5</span><span class="avatar">OT</span><span>Otabek T.</span><span class="pts">1 380</span></li>
+        </ol>
+        <form method="get" action="leaderboard" style="margin-top:14px">
+          <select name="period" aria-label="Period">
+            <option value="week">This week</option><option value="month">This month</option><option value="all">All time</option>
+          </select>
+          <button class="btn ghost block" type="submit" style="margin-top:8px">Show</button>
+        </form>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

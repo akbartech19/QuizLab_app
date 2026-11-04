@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quiz.title }} – QuizLab{% endblock %}
+
+{% block content %}
+
+<div class="top">
+    <h1>{{ quiz.title }}</h1>
+    <p class="muted">{{ quiz.science.name }}</p>
+</div>
+
+{% if result %}
+    <section class="quiz">
+        <h2>Quiz completed!</h2>
+        <p>Your score: {{ correct_count }} / {{ total_questions }}</p>
+        <a href="{% url 'index' %}" class="btn">Back to home</a>
+    </section>
+
+{% elif expired %}
+    <section class="quiz">
+        <h2>Time is up!</h2>
+        <p>Your time for this quiz has ended.</p>
+        <a href="{% url 'index' %}" class="btn">Back to home</a>
+    </section>
+
+{% else %}
+
+    <div class="quiz">
+        <h2>Time remaining: <span id="timer">--:--</span></h2>
+    </div>
+
+    <form method="post" id="quiz-form">
+        {% csrf_token %}
+
+        {% for question in questions %}
+            <article class="quiz">
+                <h3>{{ forloop.counter }}. {{ question.question_text }}</h3>
+
+                {% for variant in question.variants.all %}
+                    <label>
+                        <input
+                            type="radio"
+                            name="question_{{ question.id }}"
+                            value="{{ variant.id }}"
+                        >
+                        {{ variant.variant_text }}
+                    </label>
+                    <br>
+                {% endfor %}
+            </article>
+        {% empty %}
+            <p>This quiz has no questions yet.</p>
+        {% endfor %}
+
+        {% if questions %}
+            <button type="submit" class="btn">
+                Submit Quiz
+            </button>
+        {% endif %}
+    </form>
+
+    <script>
+        const deadline = { deadline_ms };
+        const timer = document.getElementById("timer");
+        const form = document.getElementById("quiz-form");
+
+        function updateTimer() {
+            const remaining = Math.max(0, deadline - Date.now());
+
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+
+            timer.textContent =
+                String(minutes).padStart(2, "0") + ":" +
+                String(seconds).padStart(2, "0");
+
+            if (remaining <= 0) {
+                form.requestSubmit();
+            }
+        }
+
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    </script>
+
+{% endif %}
+
+{% endblock %}

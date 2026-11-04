@@ -1,0 +1,303 @@
+
+{% extends "base.html" %}
+
+{% block title %}Leaderboard – QuizLab{% endblock %}
+
+{% block extra_css %}
+<style>
+    .leaderboard-page {
+        max-width: 900px;
+        margin: 28px auto;
+        padding: 24px;
+        background: #1b1e28;
+        border: 1px solid #2b2f3e;
+        border-radius: 17px;
+        color: #f5f5f7;
+    }
+
+    .leaderboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .leaderboard-header h1 {
+        font-size: 28px;
+        margin: 0;
+    }
+
+    .period-select {
+        background: #141720;
+        border: 1px solid #2b2f3e;
+        border-radius: 10px;
+        color: white;
+        padding: 13px;
+    }
+
+    .search-form {
+        margin-bottom: 18px;
+    }
+
+    .search-form input {
+        width: 100%;
+        box-sizing: border-box;
+        background: #141720;
+        border: 1px solid #2b2f3e;
+        border-radius: 11px;
+        color: white;
+        padding: 14px;
+        font: inherit;
+        outline: none;
+    }
+
+    .search-form input:focus {
+        border-color: #f3b34f;
+    }
+
+    .top-solvers {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .solver-card {
+        background: #141720;
+        border: 1px solid #2b2f3e;
+        border-radius: 14px;
+        padding: 16px 10px;
+        text-align: center;
+        min-width: 0;
+    }
+
+    .user-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        margin: 0 auto 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #f3b34f;
+        color: #171923;
+        font-size: 20px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .solver-card h3 {
+        margin: 0 0 3px;
+        font-size: 15px;
+        overflow-wrap: anywhere;
+    }
+
+    .solver-card h3 a,
+    .ranking-user a {
+        color: #f5f5f7;
+        text-decoration: none;
+    }
+
+    .solver-card h3 a:hover,
+    .ranking-user a:hover {
+        color: #f3b34f;
+    }
+
+    .solver-score {
+        color: #f3b34f;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .ranking-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .ranking-list li {
+        display: grid;
+        grid-template-columns: 30px 42px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 8px;
+        border-top: 1px solid #2b2f3e;
+    }
+
+    .rank-number {
+        color: #a4a9bb;
+        text-align: center;
+    }
+
+    .ranking-list .user-avatar {
+        width: 38px;
+        height: 38px;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .ranking-user {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-weight: 600;
+    }
+
+    .ranking-score {
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .empty-message {
+        padding: 24px;
+        text-align: center;
+        color: #a4a9bb;
+    }
+
+    @media (max-width: 600px) {
+        .leaderboard-page {
+            margin: 16px auto;
+            padding: 14px;
+        }
+
+        .leaderboard-header h1 {
+            font-size: 23px;
+        }
+
+        .top-solvers {
+            gap: 8px;
+        }
+
+        .solver-card {
+            padding: 13px 5px;
+        }
+
+        .solver-card .user-avatar {
+            width: 44px;
+            height: 44px;
+        }
+
+        .solver-card h3 {
+            font-size: 12px;
+        }
+
+        .solver-score {
+            font-size: 14px;
+        }
+
+        .ranking-list li {
+            grid-template-columns: 22px 36px minmax(0, 1fr) auto;
+            gap: 8px;
+            padding: 11px 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="leaderboard-page">
+
+    <div class="leaderboard-header">
+        <h1>Top solvers</h1>
+
+        <form method="get" action="{% url 'leaderboard' %}">
+            <input type="hidden" name="search" value="{{ search }}">
+            <select class="period-select" name="period"
+                    aria-label="Ranking period"
+                    onchange="this.form.submit()">
+                <option value="week"
+                    {% if period == "week" %}selected{% endif %}>
+                    This week
+                </option>
+                <option value="month"
+                    {% if period == "month" %}selected{% endif %}>
+                    This month
+                </option>
+                <option value="all"
+                    {% if period == "all" %}selected{% endif %}>
+                    All time
+                </option>
+            </select>
+        </form>
+    </div>
+
+    <form method="get" action="{% url 'leaderboard' %}"
+          class="search-form">
+        <input
+            type="search"
+            name="search"
+            placeholder="Search user by name..."
+            value="{{ search }}"
+            aria-label="Search users"
+        >
+    </form>
+
+    <div class="top-solvers">
+        {% for person in top_users %}
+            <article class="solver-card">
+                <div class="user-avatar">
+                    {% if person.profile.profile_image %}
+                        <img src="{{ person.profile.profile_image.url }}"
+                             alt="{{ person.username }}">
+                    {% else %}
+                        {{ person.username|slice:":2"|upper }}
+                    {% endif %}
+                </div>
+
+                <h3>
+                    <a href="{% url 'user_profile' person.id %}">
+                        {{ person.first_name|default:person.username }}
+                    </a>
+                </h3>
+
+                <div class="solver-score">
+                    {{ person.total_score|default_if_none:0 }}
+                </div>
+            </article>
+        {% empty %}
+            <p class="empty-message">No users found.</p>
+        {% endfor %}
+    </div>
+
+    <ol class="ranking-list">
+        {% for person in users %}
+            <li>
+                <span class="rank-number">{{ forloop.counter }}</span>
+
+                <div class="user-avatar">
+                    {% if person.profile.profile_image %}
+                        <img src="{{ person.profile.profile_image.url }}"
+                             alt="{{ person.username }}">
+                    {% else %}
+                        {{ person.username|slice:":2"|upper }}
+                    {% endif %}
+                </div>
+
+                <span class="ranking-user">
+                    <a href="{% url 'user_profile' person.id %}">
+                        {% if person.first_name %}
+                            {{ person.first_name }} {{ person.last_name }}
+                        {% else %}
+                            {{ person.username }}
+                        {% endif %}
+                    </a>
+                </span>
+
+                <span class="ranking-score">
+                    {{ person.total_score|default_if_none:0 }}
+                </span>
+            </li>
+        {% empty %}
+            <li class="empty-message">No users found.</li>
+        {% endfor %}
+    </ol>
+
+</div>
+{% endblock %}

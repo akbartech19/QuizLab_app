@@ -1,0 +1,74 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static '.css/style.css' %}">
+
+    <title>Log in – QuizLab</title>
+</head>
+<body>
+    <main class="auth">
+        <form method="post">
+            {% csrf_token %}
+
+            <a class="logo" href="{% url 'index' %}">
+                quiz<b>lab</b>
+            </a>
+
+            <h1>Welcome back</h1>
+            <p class="muted" style="margin-bottom:22px">
+                Log in to continue your quizzes.
+            </p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <p class="muted">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+
+            {% if form.non_field_errors %}
+                <div class="muted">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="field">
+                <label for="user">Username</label>
+                <input
+                    id="user"
+                    type="text"
+                    name="username"
+                    autocomplete="username"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="field">
+                <label for="pw">Password</label>
+                <input
+                    id="pw"
+                    type="password"
+                    name="password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <button class="btn block" type="submit">Log in</button>
+
+            <p class="alt muted">
+                New here?
+                <a href="{% url 'register' %}">Create an account</a>
+            </p>
+        </form>
+    </main>
+</body>
+</html>
